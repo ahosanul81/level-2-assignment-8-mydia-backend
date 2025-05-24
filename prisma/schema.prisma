@@ -1,0 +1,176 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      UserRole
+  status    UserStatus @default(active)
+  Admin     Admin?
+  Member    Member?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Admin {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  name          String
+  email         String   @unique
+  profilePhoto  String?
+  contactNumber String
+  address       String?
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Member {
+  id           String  @id @default(uuid())
+  userId       String  @unique
+  user         User    @relation(fields: [userId], references: [id])
+  name         String
+  email        String  @unique
+  profilePhoto String?
+
+  contactNumber String
+  address       String?
+  isVerified    Boolean @default(false)
+  isDeleted     Boolean @default(false)
+
+  Idea      Idea[]
+  Comment   Comment[]
+  Vote      Vote[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("members")
+}
+
+model Category {
+  id           String   @id @default(ulid())
+  categoryName String   @unique
+  Idea         Idea[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Idea {
+  id                  String     @id @default(uuid())
+  title               String
+  problemStatement    String
+  proposedSolution    String
+  description         String
+  imageUrls           String[]
+  isPaid              Boolean    @default(false)
+  status              IdeaStatus @default(pending)
+  feedbackOfRejection String? // Only visible if Rejected
+  category            Category   @relation(fields: [categoryId], references: [id])
+  categoryId          String
+  member              Member     @relation(fields: [memberId], references: [id])
+  memberId            String
+  comments            Comment[]
+  Votes               Vote[]
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  @@map("ideas")
+}
+
+model Comment {
+  id       String @id @default(uuid())
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+  ideaId   String
+  idea     Idea   @relation(fields: [ideaId], references: [id])
+
+  text     String
+  parentId String? // Nullable — null = top-level comment
+  parent   Comment?  @relation("CommentToReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentToReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+}
+
+// model Comment {
+//   id       String @id @default(uuid())
+//   memberId String
+//   member   Member @relation(fields: [memberId], references: [id])
+//   ideaId   String
+//   idea     Idea   @relation(fields: [ideaId], references: [id])
+
+//   text         String
+//   ReplyComment ReplyComment[]
+//   createdAt    DateTime       @default(now())
+//   updatedAt    DateTime       @updatedAt
+
+//   @@map("comments")
+// }
+
+// model ReplyComment {
+//   id       String @id @default(uuid())
+//   ideaId   String
+//   memberId String
+//   text     String
+
+//   parentId String
+//   reply    Comment @relation(fields: [parentId], references: [id])
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+model Vote {
+  id        String   @id @default(uuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  ideaId    String   @unique
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+  upVote    Int      @default(0)
+  downVote  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("votes")
+}
+
+enum UserStatus {
+  active
+  blocked
+  deleted
+}
+
+enum UserRole {
+  admin
+  member
+}
+
+enum IdeaStatus {
+  pending
+  approved
+  rejected
+}
