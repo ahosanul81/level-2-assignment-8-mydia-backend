@@ -62,6 +62,7 @@ model Member {
   Vote      Vote[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  Payment   Payment[]
 
   @@map("members")
 }
@@ -84,6 +85,7 @@ model Idea {
   description         String
   imageUrls           String[]
   isPaid              Boolean    @default(false)
+  price               Int?
   status              IdeaStatus @default(pending)
   feedbackOfRejection String? // Only visible if Rejected
   category            Category   @relation(fields: [categoryId], references: [id])
@@ -94,6 +96,7 @@ model Idea {
   Votes               Vote[]
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
+  Payment             Payment[]
 
   @@map("ideas")
 }
@@ -158,6 +161,18 @@ model Vote {
   @@map("votes")
 }
 
+model Payment {
+  id                 String        @id @default(uuid())
+  ideaId             String
+  idea               Idea          @relation(fields: [ideaId], references: [id])
+  memberId           String
+  member             Member        @relation(fields: [memberId], references: [id])
+  status             PaymentStatus @default(un_paid)
+  paymentGatewayData Json?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
 enum UserStatus {
   active
   blocked
@@ -173,4 +188,9 @@ enum IdeaStatus {
   pending
   approved
   rejected
+}
+
+enum PaymentStatus {
+  un_paid
+  paid
 }
