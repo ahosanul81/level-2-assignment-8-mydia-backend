@@ -7,27 +7,29 @@ import { UserRole } from "@prisma/client";
 
 const commentRouter = express.Router();
 
+// commentRouter.get("/comments");
+
 commentRouter.post(
   "/add-comment/:ideaId",
   validateRequest(commentValidation.addComment),
-  auth(UserRole.member),
+  auth(UserRole.member, UserRole.admin),
   commentController.addComment
 );
 commentRouter.post(
   "/add-reply-comment/:ideaId",
   validateRequest(commentValidation.addReply),
-  auth(UserRole.member),
+  auth(UserRole.member, UserRole.admin),
   commentController.addReply
 );
-commentRouter.post(
-  "/delete-comment/:ideaId",
-  auth(UserRole.member),
+commentRouter.delete(
+  "/delete-comment/:commentId",
+  auth(UserRole.member, UserRole.admin),
   commentController.deleteComment
 );
 commentRouter.patch(
   "/update-comment/:commentId",
   validateRequest(commentValidation.updateComment),
-  auth(UserRole.member),
+  auth(UserRole.member, UserRole.admin),
   commentController.updateComment
 );
 

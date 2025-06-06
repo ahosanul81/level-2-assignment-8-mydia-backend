@@ -39,18 +39,28 @@ const deleteCommentIntoDB = async (commentId: string) => {
 };
 
 const updateCommentIntoDB = async (commentId: string, payload: TComment) => {
-  const { ideaId, memberId, parentId, text } = payload;
+  const { ideaId, memberId, parentId } = payload;
 
-  const isExistComment = await prisma.comment.findUnique({
-    where: { id: commentId, parentId, memberId, ideaId },
-  });
-  if (!isExistComment) {
-    throw new AppError(404, "Idea or comment was deleted");
+  if (commentId && memberId && ideaId) {
+    const isExistComment = await prisma.comment.findUnique({
+      where: { id: commentId, memberId, ideaId },
+    });
+
+    if (!isExistComment) {
+      throw new AppError(404, "Idea or comment was deleted");
+    }
   }
 
   const result = await prisma.comment.update({
     where: { id: commentId },
     data: payload,
+  });
+  return result;
+};
+const commentCountFromDB = async (ideaId: string) => {
+  const result = await prisma.comment.groupBy({
+    by: ["ideaId"],
+    _count: true,
   });
   return result;
 };
@@ -60,4 +70,5 @@ export const commentService = {
   addReplyIntoDB,
   deleteCommentIntoDB,
   updateCommentIntoDB,
+  commentCountFromDB,
 };

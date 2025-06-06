@@ -3,6 +3,8 @@ import { PrismaClient, UserRole } from "@prisma/client";
 import { AppError } from "../../utils/AppError";
 import { IFile } from "../../interface/fileType";
 import { imageUploadToCloudinary } from "../../utils/imageUploadToCloudinary";
+import { StatusCodes } from "http-status-codes";
+import { IMember } from "./user.types";
 
 const prisma = new PrismaClient();
 
@@ -85,4 +87,38 @@ const createMemberIntoDB = async (files: IFile[], payload: any) => {
   return result;
 };
 
-export const userService = { createAdminIntoDB, createMemberIntoDB };
+const getUserByEmailFromDB = async (userData: {
+  email: string;
+  role: string;
+}) => {
+  const { email, role } = userData;
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (user?.role !== role) {
+    throw new AppError(StatusCodes.UNAUTHORIZED, `You are not ${role}`);
+  }
+  // console.log(user);
+
+  let result;
+
+  if (user?.role === "member") {
+    result = await prisma.member.findUnique({
+      where: { email },
+    });
+  }
+
+  if (user?.role === "admin") {
+    await prisma.admin.findUnique({ where: { email } });
+  }
+
+  if (!result) {
+    throw new AppError(404, "user not found");
+  }
+
+  return result;
+};
+
+export const userService = {
+  createAdminIntoDB,
+  createMemberIntoDB,
+  getUserByEmailFromDB,
+};

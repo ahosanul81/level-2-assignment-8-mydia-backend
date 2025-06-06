@@ -12,13 +12,13 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
   const queryFilter = { isPaid, status, category };
   const options = { sortBy, sortOrder };
   const { page, limit, skip } = calculatePagination(options);
-  // console.log(queryFilter);
 
   const searchAbleFields = [
     "title",
     "problemStatement",
     "proposedSolution",
     "description",
+    "status",
   ];
 
   let andCondtion: Prisma.IdeaWhereInput[] = [];
@@ -37,7 +37,7 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
     }
   }
 
-  if (Object.keys(queryFilter).length > 0) {
+  if (Object.values(queryFilter).some((value) => value !== undefined)) {
     const orCondition = Object.keys(queryFilter)?.map((key) => {
       const typedKey = key as keyof typeof queryFilter; //type issue solved by gpt
       const value = queryFilter[typedKey];
@@ -64,10 +64,17 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
       };
     });
     andCondtion.push({ AND: orCondition });
+  } else {
+    andCondtion.push({
+      status: "approved",
+      isDeleted: false,
+    });
   }
 
   const result = await prisma.idea.findMany({
-    where: andCondtion[0],
+    where: {
+      AND: andCondtion,
+    },
     skip,
     take: limit,
     include: {
@@ -84,9 +91,42 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
           address: true,
         },
       },
+      comments: {
+        include: {
+          member: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+          parent: {
+            include: {
+              member: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      votes: true,
     },
   });
-  const totalCount = await prisma.idea.count({ where: andCondtion[0] });
+
+  const totalCount = await prisma.idea.count({
+    where: {
+      AND: andCondtion,
+    },
+  });
+  // console.log(result);
+
+  // const commentSForLimit = await prisma.comment
+
   return {
     meta: { page, limit, total: totalCount },
     result,
@@ -173,7 +213,12 @@ const updateIdeaIntoDB = async (
 
 const deleteIdeaFromDB = async (ideaId: string) => {
   const idea = await isExistIdea(ideaId);
-  const result = await prisma.idea.delete({ where: { id: ideaId } });
+  const result = await prisma.idea.update({
+    where: { id: ideaId },
+    data: {
+      isDeleted: true,
+    },
+  });
   return result;
 };
 const updateIdeaStatusIntoDB = async (

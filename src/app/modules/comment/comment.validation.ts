@@ -14,7 +14,7 @@ const addReply = z.object({
 const updateComment = z.object({
   ideaId: z.string().optional(),
   memberId: z.string().optional(),
-  parentId: z.string().optional(),
+  parentId: z.string().nullable().optional(),
   text: z.string().optional(),
 });
 

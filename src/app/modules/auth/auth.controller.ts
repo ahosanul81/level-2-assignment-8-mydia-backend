@@ -5,6 +5,7 @@ const login = catchAsync(async (req, res) => {
   const result = await authSerivice.loginIntoDB(req.body);
   res.cookie("refreshToken", result.refreshToken);
   res.status(200).json({
+    success: true,
     statusCode: 200,
     message: "logged in successfully",
     data: result,

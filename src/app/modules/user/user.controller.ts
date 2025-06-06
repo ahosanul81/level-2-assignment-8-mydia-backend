@@ -27,4 +27,14 @@ const createMember = catchAsync(async (req, res) => {
     data: result,
   });
 });
-export const userController = { createAdmin, createMember };
+const getMemberByEmail = catchAsync(async (req, res) => {
+  const result = await userService.getUserByEmailFromDB(req.body);
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: "Member fetched successfully",
+    data: result,
+  });
+});
+export const userController = { createAdmin, createMember, getMemberByEmail };

@@ -46,10 +46,20 @@ const updateComment = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const commentCount = catchAsync(async (req, res) => {
+  const result = await commentService.commentCountFromDB(req.params.ideaId);
+
+  res.status(200).json({
+    statusCode: 200,
+    message: "Comment updated successfully",
+    data: result,
+  });
+});
 
 export const commentController = {
   addComment,
   addReply,
   deleteComment,
   updateComment,
+  commentCount,
 };

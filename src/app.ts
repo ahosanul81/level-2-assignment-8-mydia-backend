@@ -20,10 +20,10 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use("/api/v1/user", userRouter);
+app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/category", categoryRouter);
-app.use("/api/v1/idea", ideaRouter);
+app.use("/api/v1/ideas", ideaRouter);
 app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/votes", voteRouter);
 app.use("/api/v1/payment", paymentRouter);
