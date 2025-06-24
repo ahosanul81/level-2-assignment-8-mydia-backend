@@ -6,10 +6,13 @@ import { prisma } from "../../utils/prisma";
 import { TIdea, TQueryFilters } from "./idea.interface";
 import { calculatePagination } from "../../utils/calculatePagination";
 import { isExistIdea } from "./idea.utils";
+import { isExistMemberByEmail } from "../member/member.utils";
+import { queryBuilder } from "../../utils/queryBuilder";
 
 const getAllIdeaFromDB = async (query: TQueryFilters) => {
-  const { searchTerm, isPaid, status, category, sortBy, sortOrder } = query;
-  const queryFilter = { isPaid, status, category };
+  const { searchTerm, isPaid, status, category, sortBy, sortOrder, isDeleted } =
+    query;
+  const queryFilter = { isPaid, status, category, isDeleted };
   const options = { sortBy, sortOrder };
   const { page, limit, skip } = calculatePagination(options);
 
@@ -30,46 +33,57 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
           {
             [field]: {
               contains: searchTerm,
+              mode: "insensitive",
             },
           },
         ],
       });
     }
   }
-
-  if (Object.values(queryFilter).some((value) => value !== undefined)) {
-    const orCondition = Object.keys(queryFilter)?.map((key) => {
-      const typedKey = key as keyof typeof queryFilter; //type issue solved by gpt
-      const value = queryFilter[typedKey];
-      if (key === "category") {
-        return {
-          category: {
-            categoryName: {
-              equals: value,
-            },
-          },
-        };
-      }
-      if (key === "isPaid") {
-        return {
-          isPaid: {
-            equals: value === "true" ? true : false,
-          },
-        };
-      }
-      return {
-        [key]: {
-          equals: value,
-        },
-      };
-    });
-    andCondtion.push({ AND: orCondition });
-  } else {
-    andCondtion.push({
-      status: "approved",
-      isDeleted: false,
-    });
-  }
+  andCondtion = queryBuilder(queryFilter, {
+    status: "approved",
+    isDeleted: false,
+  });
+  // if (Object.values(queryFilter).some((value) => value !== undefined)) {
+  //   const orCondition = Object.keys(queryFilter)?.map((key) => {
+  //     const typedKey = key as keyof typeof queryFilter; //type issue solved by gpt
+  //     const value = queryFilter[typedKey];
+  //     if (key === "category") {
+  //       return {
+  //         category: {
+  //           categoryName: {
+  //             equals: value,
+  //           },
+  //         },
+  //       };
+  //     }
+  //     if (key === "isPaid") {
+  //       return {
+  //         isPaid: {
+  //           equals: value === "true" ? true : false,
+  //         },
+  //       };
+  //     }
+  //     if (key === "isDeleted") {
+  //       return {
+  //         isDeleted: {
+  //           equals: value === "true" ? true : false,
+  //         },
+  //       };
+  //     }
+  //     return {
+  //       [key]: {
+  //         equals: value,
+  //       },
+  //     };
+  //   });
+  //   andCondtion.push({ AND: orCondition });
+  // } else {
+  //   andCondtion.push({
+  //     status: "approved",
+  //     isDeleted: false,
+  //   });
+  // }
 
   const result = await prisma.idea.findMany({
     where: {
@@ -80,6 +94,7 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
     include: {
       category: {
         select: {
+          id: true,
           categoryName: true,
         },
       },
@@ -123,7 +138,7 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
       AND: andCondtion,
     },
   });
-  // console.log(result);
+  // console.log(result.length);
 
   // const commentSForLimit = await prisma.comment
 
@@ -212,6 +227,8 @@ const updateIdeaIntoDB = async (
 };
 
 const deleteIdeaFromDB = async (ideaId: string) => {
+  console.log(ideaId);
+
   const idea = await isExistIdea(ideaId);
   const result = await prisma.idea.update({
     where: { id: ideaId },
@@ -236,6 +253,54 @@ const updateIdeaStatusIntoDB = async (
   });
   return result;
 };
+
+const getMyIdeaFromDB = async (user: { email: string; role: string }) => {
+  const member = await isExistMemberByEmail(user.email);
+
+  const result = await prisma.idea.findMany({
+    where: { memberId: member.id, isDeleted: false },
+    include: {
+      category: {
+        select: {
+          id: true,
+          categoryName: true,
+        },
+      },
+      member: {
+        select: {
+          id: true,
+          email: true,
+          user: true,
+        },
+      },
+    },
+  });
+
+  return result;
+};
+const getAllStatusIdeaFromDB = async (status: IdeaStatus) => {
+  const result = await prisma.idea.findMany({
+    where: { status: status || "pending", isDeleted: false },
+    include: {
+      member: {
+        select: {
+          name: true,
+          profilePhoto: true,
+        },
+      },
+      category: {
+        select: {
+          id: true,
+          categoryName: true,
+        },
+      },
+    },
+  });
+  if (!result) {
+    throw new AppError(404, "No idea found");
+  }
+  return result;
+};
 export const ideaService = {
   getAllIdeaFromDB,
   getIdeaByIdFromDB,
@@ -243,4 +308,6 @@ export const ideaService = {
   updateIdeaIntoDB,
   deleteIdeaFromDB,
   updateIdeaStatusIntoDB,
+  getMyIdeaFromDB,
+  getAllStatusIdeaFromDB,
 };

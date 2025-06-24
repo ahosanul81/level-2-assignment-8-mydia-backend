@@ -45,24 +45,22 @@ model Admin {
 }
 
 model Member {
-  id           String  @id @default(uuid())
-  userId       String  @unique
-  user         User    @relation(fields: [userId], references: [id])
-  name         String
-  email        String  @unique
-  profilePhoto String?
-
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  name          String
+  email         String    @unique
+  profilePhoto  String?
   contactNumber String
   address       String?
-  isVerified    Boolean @default(false)
-  isDeleted     Boolean @default(false)
-
-  Idea      Idea[]
-  Comment   Comment[]
-  Vote      Vote[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Payment   Payment[]
+  isVerified    Boolean   @default(false)
+  isDeleted     Boolean   @default(false)
+  Idea          Idea[]
+  Comment       Comment[]
+  Vote          Vote[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  Payment       Payment[]
 
   @@map("members")
 }

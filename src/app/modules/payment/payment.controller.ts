@@ -20,13 +20,22 @@ const paymentValidate = catchAsync(async (req, res) => {
 const paymentSuccess = catchAsync(async (req, res) => {
   // console.log(req.body);
   const { val_id } = req.body;
+  // console.log(val_id);
 
   const response = await fetch(
-    `http://localhost:3000/api/v1/payment/validate/${val_id}`
+    `http://localhost:5000/api/v1/payment/validate/${val_id}`
   );
   const validation = await response.json();
-  const updatePaymentInfoIntoDB = await paymentService.paymentSuccess(req.body);
-  res.status(200).json(validation);
+  if (validation.payment === "success") {
+    const updatePaymentInfoIntoDB = await paymentService.paymentSuccess(
+      req.body
+    );
+    res.redirect(
+      `http://localhost:3000/payment/payment-success?status=success&message=Payment successful`
+    );
+    res.status(200).json(validation);
+  }
+
   // res.status(200).json({ data: req.body });
 });
 
@@ -37,10 +46,21 @@ const paymentCancel = catchAsync(async (req, res) => {
   res.status(200).json({ data: req.body });
 });
 
+const getAllPaymentCompleted = catchAsync(async (req, res) => {
+  const result = await paymentService.getAllPaymentCompletedIntoDB();
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: "Completed payment fetched successfully",
+    data: result,
+  });
+});
 export const paymentController = {
   paymentPgae,
   paymentValidate,
   paymentFail,
   paymentCancel,
   paymentSuccess,
+  getAllPaymentCompleted,
 };

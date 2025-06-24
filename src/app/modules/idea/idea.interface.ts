@@ -5,7 +5,7 @@ export type TIdea = {
   problemStatement: string;
   proposedSolution: string;
   description: string;
-  imageUrls: string[];
+  imageUrls?: string[];
   isPaid?: boolean; // Optional, defaults to false
   status?: IdeaStatus | undefined; // Optional, defaults to 'pending'
   feedbackOfRejection?: string; // Optional
@@ -20,4 +20,8 @@ export type TQueryFilters = {
   category?: string;
   sortBy?: string;
   sortOrder?: string;
+  isDeleted?: boolean;
+  role?: string;
+  page?: string;
+  limit?: string;
 };

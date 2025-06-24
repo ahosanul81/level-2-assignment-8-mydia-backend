@@ -35,8 +35,18 @@ ideaRouter.delete(
 ideaRouter.patch(
   "/update-idea-status/:ideaId",
   validateRequest(ideaValidation.updateIdeaStatus),
-  auth(UserRole.admin),
+  auth(UserRole.admin, UserRole.member),
   ideaController.updateIdeaStatus
+);
+ideaRouter.get(
+  "/get/my-idea",
+  auth(UserRole.member, UserRole.admin),
+  ideaController.getMyIdea
+);
+ideaRouter.get(
+  "/status/:status",
+  auth(UserRole.member, UserRole.admin),
+  ideaController.getAllStatusIdea
 );
 
 export default ideaRouter;

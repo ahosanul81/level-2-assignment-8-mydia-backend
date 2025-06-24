@@ -18,19 +18,27 @@ export const auth = (...roles: string[]) => {
 
     const decoded: TJwtPayload = jwtDecode(token);
     const { email, role, iat, exp } = decoded;
-    if (
-      !roles.includes(role) ||
-      !(await prisma.user.findUnique({ where: { email } }))
-    ) {
+    const userData = await prisma.user.findUnique({
+      where: { email },
+      select: { role: true, email: true, status: true },
+    });
+    if (!roles.includes(userData!.role)) {
       throw new AppError(
         StatusCodes.UNAUTHORIZED,
         "You are not authorized user"
       );
     }
 
+    if (userData?.status !== "active") {
+      throw new AppError(
+        StatusCodes.CONFLICT,
+        `You are unauthorized. You are ${userData?.status}`
+      );
+    }
     if (new Date().getTime() > exp * 1000) {
       throw new AppError(StatusCodes.UNAUTHORIZED, "Login session is expired");
     }
+    req.user = { email, role };
     next();
   };
 };

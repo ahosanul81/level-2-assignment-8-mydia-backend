@@ -1,5 +1,7 @@
 import express from "express";
 import { paymentController } from "./payment.controller";
+import { auth } from "../../middlewares/auth";
+import { UserRole } from "@prisma/client";
 const paymentRouter = express.Router();
 
 //sslcommerz init
@@ -9,4 +11,9 @@ paymentRouter.post("/success", paymentController.paymentSuccess);
 paymentRouter.get("/fail", paymentController.paymentFail);
 paymentRouter.get("/cancel", paymentController.paymentCancel);
 
+paymentRouter.get(
+  "/completed",
+  auth(UserRole.admin, UserRole.member),
+  paymentController.getAllPaymentCompleted
+);
 export default paymentRouter;

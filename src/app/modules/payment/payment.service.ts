@@ -3,6 +3,7 @@ import config from "../../../config";
 import { generateTransactionId } from "../../utils/generateTransactionId";
 import { prisma } from "../../utils/prisma";
 import { isExistIdea } from "../idea/idea.utils";
+import { AppError } from "../../utils/AppError";
 
 const SSLCommerzPayment = require("sslcommerz-lts");
 const store_id = "ideah68337b25e9f9a";
@@ -32,15 +33,16 @@ const paymentPage = async (
       contactNumber: true,
     },
   });
+
   const data = {
     total_amount: idea.isPaid && price,
     currency: "BDT",
     tran_id: generateTransactionId(),
 
-    success_url: `http://localhost:3000/api/v1/payment/success`,
-    fail_url: `http://localhost:3000/api/v1/payment/fail`,
-    cancel_url: `http://localhost:3000/api/v1/payment/cancel`,
-    ipn_url: `http://localhost:3000/api/v1/ssl-payment-notification`,
+    success_url: `http://localhost:5000/api/v1/payment/success`,
+    fail_url: `http://localhost:5000/api/v1/payment/fail`,
+    cancel_url: `http://localhost:5000/api/v1/payment/cancel`,
+    ipn_url: `http://localhost:5000/api/v1/ssl-payment-notification`,
 
     shipping_method: "Courier",
     product_name: title,
@@ -72,6 +74,7 @@ const paymentPage = async (
 
     multi_card_name: "mastercard", // Optional, but good for card support
   };
+  // console.log(data);
 
   const sslcommerz = new SSLCommerzPayment(store_id, store_passwd, is_live); //true for live default false for sandbox
   const sslData = await sslcommerz.init(data);
@@ -86,19 +89,74 @@ const paymentValidation = async (val_id: string) => {
 };
 
 const paymentSuccess = async (paymentInfo: any) => {
-  const data = {
-    memberId: paymentInfo.value_c,
-    ideaId: paymentInfo.value_d,
+  const memberId = paymentInfo.value_c;
+  const ideaId = paymentInfo.value_d;
+  // console.log(paymentInfo);
+  // Ensure the user exists
+  const memberExists = await prisma.member.findUnique({
+    where: { id: memberId },
+  });
 
+  if (!memberExists) {
+    throw new Error("Invalid memberId: user does not exist");
+  }
+
+  const data = {
+    memberId,
+    ideaId,
     status: PaymentStatus.paid,
     paymentGatewayData: paymentInfo,
   };
+
   const result = await prisma.payment.create({ data });
   return result;
 };
+const getAllPaymentCompletedIntoDB = async () => {
+  const result = await prisma.payment.findMany({
+    include: {
+      idea: {
+        select: {
+          id: true,
+          title: true,
+          category: {
+            select: {
+              id: true,
+              categoryName: true,
+            },
+          },
+        },
+      },
+      member: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+  if (!result) {
+    throw new AppError(404, "No payment found");
+  }
+  const trimmedResult = result?.map((payment) => {
+    const { amount, bank_tran_id } = payment.paymentGatewayData as {
+      amount: string;
+      bank_tran_id: string;
+    };
+    return {
+      ...payment,
+      paymentGatewayData: {
+        amount,
+        bank_tran_id,
+      },
+    };
+  });
 
+  return trimmedResult;
+};
 export const paymentService = {
   paymentPage,
   paymentValidation,
   paymentSuccess,
+  getAllPaymentCompletedIntoDB,
 };

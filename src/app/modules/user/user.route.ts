@@ -28,5 +28,20 @@ userRouter.post(
   // auth(UserRole.admin, UserRole.member),
   userController.getMemberByEmail
 );
+userRouter.get(
+  "/",
+  auth(UserRole.admin, UserRole.member),
+  userController.getAllUser
+);
+userRouter.patch(
+  "/update/user-status/:userId",
+  auth(UserRole.admin),
+  userController.updateUserStatus
+);
+userRouter.get(
+  "/me/:userEmail",
+  auth(UserRole.admin, UserRole.member),
+  userController.getMe
+);
 
 export default userRouter;
