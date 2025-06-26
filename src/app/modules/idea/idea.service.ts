@@ -10,11 +10,20 @@ import { isExistMemberByEmail } from "../member/member.utils";
 import { queryBuilder } from "../../utils/queryBuilder";
 
 const getAllIdeaFromDB = async (query: TQueryFilters) => {
-  const { searchTerm, isPaid, status, category, sortBy, sortOrder, isDeleted } =
-    query;
+  const {
+    searchTerm,
+    isPaid,
+    status,
+    category,
+    sortBy,
+    sortOrder,
+    isDeleted,
+    page,
+    limit,
+  } = query;
   const queryFilter = { isPaid, status, category, isDeleted };
-  const options = { sortBy, sortOrder };
-  const { page, limit, skip } = calculatePagination(options);
+  const options = { sortBy, sortOrder, page, limit };
+  const pagination = calculatePagination(options);
 
   const searchAbleFields = [
     "title",
@@ -89,8 +98,8 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
     where: {
       AND: andCondtion,
     },
-    skip,
-    take: limit,
+    skip: pagination.skip,
+    take: pagination.limit,
     include: {
       category: {
         select: {
@@ -102,6 +111,7 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
         select: {
           name: true,
           email: true,
+          profilePhoto: true,
           contactNumber: true,
           address: true,
         },
@@ -254,8 +264,8 @@ const updateIdeaStatusIntoDB = async (
   return result;
 };
 
-const getMyIdeaFromDB = async (user: { email: string; role: string }) => {
-  const member = await isExistMemberByEmail(user.email);
+const getMyIdeaFromDB = async (email: string) => {
+  const member = await isExistMemberByEmail(email);
 
   const result = await prisma.idea.findMany({
     where: { memberId: member.id, isDeleted: false },
@@ -270,7 +280,8 @@ const getMyIdeaFromDB = async (user: { email: string; role: string }) => {
         select: {
           id: true,
           email: true,
-          user: true,
+          name: true,
+          profilePhoto: true,
         },
       },
     },

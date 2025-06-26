@@ -9,7 +9,8 @@ import { calculatePagination } from "../../utils/calculatePagination";
 import { TQueryFilters } from "../idea/idea.interface";
 import { queryBuilder } from "../../utils/queryBuilder";
 import { isExistUser } from "./user.utils";
-
+import config from "../../../config";
+import jwt, { Secret } from "jsonwebtoken";
 const prisma = new PrismaClient();
 
 const createAdminIntoDB = async (files: IFile[], payload: any) => {
@@ -88,7 +89,29 @@ const createMemberIntoDB = async (files: IFile[], payload: any) => {
     });
     return createUser;
   });
-  return result;
+  if (result.email && result.role) {
+    const jwtData = {
+      email: result.email,
+      role: result.role,
+    };
+
+    const accessToken = jwt.sign(
+      jwtData,
+      config.jwt.access_token_secret as Secret,
+      {
+        expiresIn: "15d",
+      }
+    );
+    const refreshToken = jwt.sign(
+      jwtData,
+      config.jwt.refresh_token_secret as Secret,
+      {
+        expiresIn: "60d",
+      }
+    );
+
+    return { accessToken, refreshToken };
+  }
 };
 
 const getUserByEmailFromDB = async (userData: {

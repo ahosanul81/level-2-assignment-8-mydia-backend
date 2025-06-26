@@ -39,7 +39,7 @@ ideaRouter.patch(
   ideaController.updateIdeaStatus
 );
 ideaRouter.get(
-  "/get/my-idea",
+  "/get/my-idea/:email",
   auth(UserRole.member, UserRole.admin),
   ideaController.getMyIdea
 );

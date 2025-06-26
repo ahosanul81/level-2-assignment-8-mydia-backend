@@ -73,7 +73,7 @@ const updateIdeaStatus = catchAsync(async (req, res) => {
   });
 });
 const getMyIdea = catchAsync(async (req, res) => {
-  const result = await ideaService.getMyIdeaFromDB(req.user);
+  const result = await ideaService.getMyIdeaFromDB(req.params.email);
 
   res.status(200).json({
     success: true,
