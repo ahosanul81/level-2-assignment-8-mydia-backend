@@ -13,7 +13,7 @@ paymentRouter.get("/cancel", paymentController.paymentCancel);
 
 paymentRouter.get(
   "/completed",
-  auth(UserRole.admin, UserRole.member),
+  auth(UserRole.admin),
   paymentController.getAllPaymentCompleted
 );
 export default paymentRouter;

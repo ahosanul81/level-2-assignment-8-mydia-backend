@@ -30,12 +30,13 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
     "problemStatement",
     "proposedSolution",
     "description",
-    "status",
   ];
 
   let andCondtion: Prisma.IdeaWhereInput[] = [];
 
   if (searchTerm) {
+    console.log(searchTerm);
+
     for (const field of searchAbleFields) {
       andCondtion.push({
         OR: [
@@ -49,10 +50,14 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
       });
     }
   }
-  andCondtion = queryBuilder(queryFilter, {
-    status: "approved",
-    isDeleted: false,
-  });
+  console.log(andCondtion);
+
+  if (!searchTerm) {
+    andCondtion = queryBuilder(queryFilter, {
+      status: "approved",
+      isDeleted: false,
+    });
+  }
   // if (Object.values(queryFilter).some((value) => value !== undefined)) {
   //   const orCondition = Object.keys(queryFilter)?.map((key) => {
   //     const typedKey = key as keyof typeof queryFilter; //type issue solved by gpt
@@ -96,7 +101,7 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
 
   const result = await prisma.idea.findMany({
     where: {
-      AND: andCondtion,
+      AND: andCondtion, // AND: andCondtion
     },
     skip: pagination.skip,
     take: pagination.limit,
@@ -148,9 +153,6 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
       AND: andCondtion,
     },
   });
-  // console.log(result.length);
-
-  // const commentSForLimit = await prisma.comment
 
   return {
     meta: { page, limit, total: totalCount },

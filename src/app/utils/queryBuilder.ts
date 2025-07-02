@@ -1,10 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { TQueryFilters } from "../modules/idea/idea.interface";
 
-export const queryBuilder = (
+export const queryBuilder = <
+  T extends Prisma.UserWhereInput | Prisma.IdeaWhereInput
+>(
   queryFilter: TQueryFilters,
   defaultFilter: Record<string, string | boolean>
-) => {
+): T[] => {
   let andCondtion = [];
   if (Object.values(queryFilter).some((value) => value !== undefined)) {
     const orCondition = Object.keys(queryFilter)?.map((key) => {
@@ -43,5 +45,5 @@ export const queryBuilder = (
   } else {
     andCondtion.push(defaultFilter);
   }
-  return andCondtion;
+  return andCondtion as T[];
 };

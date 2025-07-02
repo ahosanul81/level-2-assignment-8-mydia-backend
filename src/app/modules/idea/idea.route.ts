@@ -21,7 +21,7 @@ ideaRouter.post(
 );
 ideaRouter.patch(
   "/update-idea/:ideaId",
-  auth(UserRole.member),
+  auth(UserRole.member, UserRole.admin),
   upload.array("files"),
   bodyParser,
   validateRequest(ideaValidation.update),
@@ -35,7 +35,7 @@ ideaRouter.delete(
 ideaRouter.patch(
   "/update-idea-status/:ideaId",
   validateRequest(ideaValidation.updateIdeaStatus),
-  auth(UserRole.admin, UserRole.member),
+  auth(UserRole.admin),
   ideaController.updateIdeaStatus
 );
 ideaRouter.get(
@@ -45,7 +45,7 @@ ideaRouter.get(
 );
 ideaRouter.get(
   "/status/:status",
-  auth(UserRole.member, UserRole.admin),
+  auth(UserRole.admin),
   ideaController.getAllStatusIdea
 );
 

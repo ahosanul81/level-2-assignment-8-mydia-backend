@@ -4,7 +4,7 @@ import { AppError } from "../../utils/AppError";
 import { IFile } from "../../interface/fileType";
 import { imageUploadToCloudinary } from "../../utils/imageUploadToCloudinary";
 import { StatusCodes } from "http-status-codes";
-import { IMember } from "./user.types";
+import { IMember, IUser } from "./user.types";
 import { calculatePagination } from "../../utils/calculatePagination";
 import { TQueryFilters } from "../idea/idea.interface";
 import { queryBuilder } from "../../utils/queryBuilder";
@@ -195,7 +195,7 @@ const updateUserStatusIntoDB = async (
 };
 
 const getMeFromDB = async (email: string) => {
-  const result = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email },
     select: {
       id: true,
@@ -221,20 +221,31 @@ const getMeFromDB = async (email: string) => {
       },
     },
   });
-  if (!result) {
+  if (!user) {
     throw new AppError(404, "User not found");
   }
-  return result;
+  let formatedUser: IUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    status: user.status,
+  };
+  if (user.Admin?.id) {
+    formatedUser.adminId = user.Admin.id;
+    formatedUser.profilePhoto = user.Admin.profilePhoto;
+    formatedUser.contactNumber = user.Admin.contactNumber;
+    formatedUser.address = user.Admin.address;
+  }
+  if (user.Member?.id) {
+    formatedUser.memberId = user.Member.id;
+    formatedUser.profilePhoto = user.Member.profilePhoto;
+    formatedUser.contactNumber = user.Member.contactNumber;
+    formatedUser.address = user.Member.address;
+  }
+  return formatedUser;
 };
-// Member: {
-//         select: {
-//           id: true,
-//           name: true,
-//           profilePhoto: true,
-//           contactNumber: true,
-//           address: true,
-//         },
-//       },
+
 export const userService = {
   createAdminIntoDB,
   createMemberIntoDB,
