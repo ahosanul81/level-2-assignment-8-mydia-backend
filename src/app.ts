@@ -19,7 +19,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
+app.get("/", (req: Request, res: Response) => {
+  res.send("Mydia server is running");
+});
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/categories", categoryRouter);
