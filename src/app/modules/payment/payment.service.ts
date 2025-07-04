@@ -1,9 +1,10 @@
 import { PaymentStatus } from "@prisma/client";
-import config from "../../../config";
+
 import { generateTransactionId } from "../../utils/generateTransactionId";
 import { prisma } from "../../utils/prisma";
 import { isExistIdea } from "../idea/idea.utils";
 import { AppError } from "../../utils/AppError";
+import config from "../../../config";
 
 const SSLCommerzPayment = require("sslcommerz-lts");
 const store_id = "ideah68337b25e9f9a";
@@ -39,10 +40,10 @@ const paymentPage = async (
     currency: "BDT",
     tran_id: generateTransactionId(),
 
-    success_url: `http://localhost:5000/api/v1/payment/success`,
-    fail_url: `http://localhost:5000/api/v1/payment/fail`,
-    cancel_url: `http://localhost:5000/api/v1/payment/cancel`,
-    ipn_url: `http://localhost:5000/api/v1/ssl-payment-notification`,
+    success_url: `${config.base_url}/payment/success`,
+    fail_url: `${config.base_url}/payment/fail`,
+    cancel_url: `${config.base_url}/payment/cancel`,
+    ipn_url: `${config.base_url}/ssl-payment-notification`,
 
     shipping_method: "Courier",
     product_name: title,

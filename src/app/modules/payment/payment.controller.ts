@@ -22,16 +22,14 @@ const paymentSuccess = catchAsync(async (req, res) => {
   const { val_id } = req.body;
   // console.log(val_id);
 
-  const response = await fetch(
-    `http://localhost:5000/api/v1/payment/validate/${val_id}`
-  );
+  const response = await fetch(`${config.base_url}/payment/validate/${val_id}`);
   const validation = await response.json();
   if (validation.payment === "success") {
     const updatePaymentInfoIntoDB = await paymentService.paymentSuccess(
       req.body
     );
     res.redirect(
-      `http://localhost:3000/payment/payment-success?status=success&message=Payment successful`
+      `${config.base_url_front_end}/payment/payment-success?status=success&message=Payment successful`
     );
     res.status(200).json(validation);
   }
