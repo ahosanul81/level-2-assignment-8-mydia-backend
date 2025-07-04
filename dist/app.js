@@ -23,6 +23,9 @@ app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(body_parser_1.default.json());
+app.get("/", (req, res) => {
+    res.send("Mydia server is running");
+});
 app.use("/api/v1/users", user_route_1.default);
 app.use("/api/v1/auth", auth_router_1.default);
 app.use("/api/v1/categories", category_route_1.default);
