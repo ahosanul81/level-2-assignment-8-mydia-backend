@@ -22,7 +22,7 @@ export const auth = (...roles: string[]) => {
       where: { email },
       select: { role: true, email: true, status: true },
     });
-    if (!roles.includes(userData!.role)) {
+    if (userData?.role && !roles?.includes(userData.role)) {
       throw new AppError(
         StatusCodes.UNAUTHORIZED,
         "You are not authorized user"
