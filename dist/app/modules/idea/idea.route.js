@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const idea_controller_1 = require("./idea.controller");
+const validateRequest_1 = require("../../middlewares/validateRequest");
+const idea_validation_1 = require("./idea.validation");
+const imageUploadToCloudinary_1 = require("../../utils/imageUploadToCloudinary");
+const bodyParser_1 = require("../../utils/bodyParser");
+const auth_1 = require("../../middlewares/auth");
+const client_1 = require("@prisma/client");
+const ideaRouter = express_1.default.Router();
+ideaRouter.get("/", idea_controller_1.ideaController.getAllIdea);
+ideaRouter.get("/:ideaId", idea_controller_1.ideaController.getIdeaById);
+ideaRouter.post("/add-idea", (0, auth_1.auth)(client_1.UserRole.member), imageUploadToCloudinary_1.upload.array("files"), bodyParser_1.bodyParser, (0, validateRequest_1.validateRequest)(idea_validation_1.ideaValidation.add), idea_controller_1.ideaController.addIdea);
+ideaRouter.patch("/update-idea/:ideaId", (0, auth_1.auth)(client_1.UserRole.member, client_1.UserRole.admin), imageUploadToCloudinary_1.upload.array("files"), bodyParser_1.bodyParser, (0, validateRequest_1.validateRequest)(idea_validation_1.ideaValidation.update), idea_controller_1.ideaController.updateIdea);
+ideaRouter.delete("/delete-idea/:ideaId", (0, auth_1.auth)(client_1.UserRole.member, client_1.UserRole.admin), idea_controller_1.ideaController.deleteIdea);
+ideaRouter.patch("/update-idea-status/:ideaId", (0, validateRequest_1.validateRequest)(idea_validation_1.ideaValidation.updateIdeaStatus), (0, auth_1.auth)(client_1.UserRole.admin), idea_controller_1.ideaController.updateIdeaStatus);
+ideaRouter.get("/get/my-idea/:email", (0, auth_1.auth)(client_1.UserRole.member, client_1.UserRole.admin), idea_controller_1.ideaController.getMyIdea);
+ideaRouter.get("/status/:status", (0, auth_1.auth)(client_1.UserRole.admin), idea_controller_1.ideaController.getAllStatusIdea);
+exports.default = ideaRouter;

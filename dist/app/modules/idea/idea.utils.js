@@ -1,4 +1,5 @@
 "use strict";
+// check the idea is exist or not by id
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,17 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = __importDefault(require("./app"));
-const config_1 = __importDefault(require("./config"));
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const server = app_1.default.listen(process.env.PORT, () => {
-            console.log("Sever is running on port ", config_1.default.port);
-        });
-    });
-}
-main();
+exports.isExistIdea = void 0;
+const AppError_1 = require("../../utils/AppError");
+const prisma_1 = require("../../utils/prisma");
+const isExistIdea = (ideaId) => __awaiter(void 0, void 0, void 0, function* () {
+    const isExistIdea = yield prisma_1.prisma.idea.findUnique({ where: { id: ideaId } });
+    if (!isExistIdea) {
+        throw new AppError_1.AppError(404, "No idea found");
+    }
+    return isExistIdea;
+});
+exports.isExistIdea = isExistIdea;

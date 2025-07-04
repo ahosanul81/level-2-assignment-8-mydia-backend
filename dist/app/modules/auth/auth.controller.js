@@ -8,17 +8,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = __importDefault(require("./app"));
-const config_1 = __importDefault(require("./config"));
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const server = app_1.default.listen(process.env.PORT, () => {
-            console.log("Sever is running on port ", config_1.default.port);
-        });
+exports.authController = void 0;
+const catchAsync_1 = require("../../utils/catchAsync");
+const auth_service_1 = require("./auth.service");
+const login = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield auth_service_1.authSerivice.loginIntoDB(req.body);
+    res.cookie("refreshToken", result.refreshToken);
+    res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: "logged in successfully",
+        data: result,
     });
-}
-main();
+}));
+exports.authController = { login };
