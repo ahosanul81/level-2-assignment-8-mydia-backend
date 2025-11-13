@@ -155,9 +155,24 @@ const getAllPaymentCompletedIntoDB = async () => {
 
   return trimmedResult;
 };
+
+const getPaymentStatusFromDB = async (ideaId: string, memberId: string) => {
+  const result = await prisma.payment.findMany({
+    where: { ideaId, memberId },
+    select: {
+      id: true,
+      ideaId: true,
+      memberId: true,
+      status: true,
+    },
+  });
+  return result;
+};
+
 export const paymentService = {
   paymentPage,
   paymentValidation,
   paymentSuccess,
   getAllPaymentCompletedIntoDB,
+  getPaymentStatusFromDB,
 };

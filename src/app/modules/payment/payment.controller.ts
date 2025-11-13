@@ -54,6 +54,16 @@ const getAllPaymentCompleted = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getPaymentStatus = catchAsync(async (req, res) => {
+  const result = await paymentService.getPaymentStatusFromDB();
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: "payment status fetched successfully",
+    data: result,
+  });
+});
 export const paymentController = {
   paymentPgae,
   paymentValidate,

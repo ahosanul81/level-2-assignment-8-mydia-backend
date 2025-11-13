@@ -35,8 +35,6 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
   let andCondtion: Prisma.IdeaWhereInput[] = [];
 
   if (searchTerm) {
-    console.log(searchTerm);
-
     for (const field of searchAbleFields) {
       andCondtion.push({
         OR: [
@@ -50,7 +48,6 @@ const getAllIdeaFromDB = async (query: TQueryFilters) => {
       });
     }
   }
-  console.log(andCondtion);
 
   if (!searchTerm) {
     andCondtion = queryBuilder(queryFilter, {
@@ -239,8 +236,6 @@ const updateIdeaIntoDB = async (
 };
 
 const deleteIdeaFromDB = async (ideaId: string) => {
-  console.log(ideaId);
-
   const idea = await isExistIdea(ideaId);
   const result = await prisma.idea.update({
     where: { id: ideaId },
